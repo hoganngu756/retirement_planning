@@ -35,17 +35,32 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
     onSubmit(data);
   };
 
+  const validate = (d: UserFinancialData) => {
+    const errors: Partial<Record<keyof UserFinancialData, string>> = {};
+    if (!d.currentAge || d.currentAge < 18) errors.currentAge = 'Current age must be at least 18.';
+    if (!d.retirementAge || d.retirementAge <= d.currentAge) errors.retirementAge = 'Retirement age must be greater than current age.';
+    if (d.lifeExpectancy <= d.retirementAge) errors.lifeExpectancy = 'Life expectancy must be greater than retirement age.';
+    if (d.currentSalary < 0) errors.currentSalary = 'Salary cannot be negative.';
+    if (d.currentSavings < 0) errors.currentSavings = 'Savings cannot be negative.';
+    if (d.monthlyContribution < 0) errors.monthlyContribution = 'Monthly contribution cannot be negative.';
+    return errors;
+  };
+
+  const errors = validate(data);
+  const isValid = Object.keys(errors).length === 0;
+
   const yearsToRetirement = data.retirementAge - data.currentAge;
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between"
+        className="flex w-full items-center justify-between rounded-lg border border-blue-400 bg-blue-50 px-4 py-3 shadow-sm transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer group"
+        aria-pressed={isExpanded}
       >
         <h2 className="text-lg font-bold text-gray-900">Financial Profile</h2>
         <ChevronDown
-          className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`h-7 w-7 text-blue-500 transition-transform duration-200 group-hover:scale-125 group-hover:text-blue-700 ${isExpanded ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -63,6 +78,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 max="100"
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {errors.currentAge && <p className="mt-1 text-sm text-red-600">{errors.currentAge}</p>}
             </div>
 
             {/* Retirement Age */}
@@ -77,6 +93,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <p className="mt-1 text-xs text-gray-500">{yearsToRetirement} years away</p>
+              {errors.retirementAge && <p className="mt-1 text-sm text-red-600">{errors.retirementAge}</p>}
             </div>
 
             {/* Current Salary */}
@@ -91,6 +108,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                   min="0"
                   className="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-4 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                {errors.currentSalary && <p className="mt-1 text-sm text-red-600">{errors.currentSalary}</p>}
               </div>
             </div>
 
@@ -106,6 +124,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                   min="0"
                   className="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-4 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                {errors.currentSavings && <p className="mt-1 text-sm text-red-600">{errors.currentSavings}</p>}
               </div>
             </div>
 
@@ -122,6 +141,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                   step="50"
                   className="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-4 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                {errors.monthlyContribution && <p className="mt-1 text-sm text-red-600">{errors.monthlyContribution}</p>}
               </div>
             </div>
 
@@ -136,6 +156,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 max="120"
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {errors.lifeExpectancy && <p className="mt-1 text-sm text-red-600">{errors.lifeExpectancy}</p>}
             </div>
 
             {/* Risk Tolerance */}
@@ -162,7 +183,8 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-500 px-4 py-3 font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={!isValid}
+            className={`w-full rounded-lg px-4 py-3 font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isValid ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-300 cursor-not-allowed'}`}
           >
             Generate Forecast
           </button>
