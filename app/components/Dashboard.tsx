@@ -1,39 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { UserFinancialData, RetirementScenario } from '@/app/types';
+import { UserFinancialData } from '@/app/types';
 import { generateScenarios, calculateMetrics } from '@/app/lib/calculations';
+import { useRetirementPlanning } from '@/app/hooks/useRetirementPlanning';
 import { FinancialInputForm } from './FinancialInputForm';
 import { DashboardMetrics } from './DashboardMetrics';
 import { ProjectionChart } from './ProjectionChart';
 import { ScenarioComparison } from './ScenarioComparison';
 import { ScenarioDetails } from './ScenarioDetails';
 
-const defaultUserData: UserFinancialData = {
-  currentAge: 35,
-  retirementAge: 65,
-  currentSalary: 75000,
-  currentSavings: 150000,
-  monthlyContribution: 1000,
-  lifeExpectancy: 90,
-  riskTolerance: 'moderate',
-};
-
 export const Dashboard = () => {
-  const [userData, setUserData] = useState<UserFinancialData>(defaultUserData);
-  const [scenarios, setScenarios] = useState<RetirementScenario[]>(() =>
-    generateScenarios(defaultUserData)
-  );
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('moderate');
+  const { userData, scenarios, selectedScenarioId, selectedScenario, handleUserDataChange, setSelectedScenarioId } =
+    useRetirementPlanning();
 
-  const selectedScenario = scenarios.find((s) => s.id === selectedScenarioId) || scenarios[1];
   const metrics = calculateMetrics(userData, selectedScenario);
 
   const handleSubmit = (data: UserFinancialData) => {
-    setUserData(data);
-    const newScenarios = generateScenarios(data);
-    setScenarios(newScenarios);
-    setSelectedScenarioId('moderate');
+    handleUserDataChange(data);
   };
 
   return (

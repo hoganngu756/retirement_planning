@@ -3,24 +3,16 @@
 import React, { useState } from 'react';
 import { UserFinancialData } from '@/app/types';
 import { ChevronDown } from 'lucide-react';
+import { DEFAULT_USER_DATA, AGE_CONSTRAINTS } from '@/app/lib/constants';
+import { validateFinancialData } from '@/app/lib/validation';
 
 interface FinancialInputFormProps {
   onSubmit: (data: UserFinancialData) => void;
   initialData?: UserFinancialData;
 }
 
-const defaultData: UserFinancialData = {
-  currentAge: 35,
-  retirementAge: 65,
-  currentSalary: 75000,
-  currentSavings: 150000,
-  monthlyContribution: 1000,
-  lifeExpectancy: 90,
-  riskTolerance: 'moderate',
-};
-
 export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputFormProps) => {
-  const [data, setData] = useState<UserFinancialData>(initialData || defaultData);
+  const [data, setData] = useState<UserFinancialData>(initialData || DEFAULT_USER_DATA);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleChange = (field: keyof UserFinancialData, value: string | number) => {
@@ -35,18 +27,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
     onSubmit(data);
   };
 
-  const validate = (d: UserFinancialData) => {
-    const errors: Partial<Record<keyof UserFinancialData, string>> = {};
-    if (!d.currentAge || d.currentAge < 18) errors.currentAge = 'Current age must be at least 18.';
-    if (!d.retirementAge || d.retirementAge <= d.currentAge) errors.retirementAge = 'Retirement age must be greater than current age.';
-    if (d.lifeExpectancy <= d.retirementAge) errors.lifeExpectancy = 'Life expectancy must be greater than retirement age.';
-    if (d.currentSalary < 0) errors.currentSalary = 'Salary cannot be negative.';
-    if (d.currentSavings < 0) errors.currentSavings = 'Savings cannot be negative.';
-    if (d.monthlyContribution < 0) errors.monthlyContribution = 'Monthly contribution cannot be negative.';
-    return errors;
-  };
-
-  const errors = validate(data);
+  const errors = validateFinancialData(data);
   const isValid = Object.keys(errors).length === 0;
 
   const yearsToRetirement = data.retirementAge - data.currentAge;
@@ -74,8 +55,8 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 type="number"
                 value={data.currentAge}
                 onChange={(e) => handleChange('currentAge', e.target.value)}
-                min="18"
-                max="100"
+                min={AGE_CONSTRAINTS.minCurrentAge}
+                max={AGE_CONSTRAINTS.maxCurrentAge}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.currentAge && <p className="mt-1 text-sm text-red-600">{errors.currentAge}</p>}
@@ -89,7 +70,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 value={data.retirementAge}
                 onChange={(e) => handleChange('retirementAge', e.target.value)}
                 min={data.currentAge}
-                max="100"
+                max={AGE_CONSTRAINTS.maxRetirementAge}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <p className="mt-1 text-xs text-gray-500">{yearsToRetirement} years away</p>
@@ -153,7 +134,7 @@ export const FinancialInputForm = ({ onSubmit, initialData }: FinancialInputForm
                 value={data.lifeExpectancy}
                 onChange={(e) => handleChange('lifeExpectancy', e.target.value)}
                 min={data.retirementAge + 1}
-                max="120"
+                max={AGE_CONSTRAINTS.maxLifeExpectancy}
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {errors.lifeExpectancy && <p className="mt-1 text-sm text-red-600">{errors.lifeExpectancy}</p>}

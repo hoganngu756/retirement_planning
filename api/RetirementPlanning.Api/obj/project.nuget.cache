@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "bZUl/I17iKA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\hogan\\OneDrive\\Documents\\retirement_planning\\api\\RetirementPlanning.Api\\RetirementPlanning.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hogan\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.0\\microsoft.aspnetcore.openapi.10.0.0.nupkg.sha512",
+    "C:\\Users\\hogan\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,4 +1,11 @@
 import { UserFinancialData, RetirementProjection, RetirementScenario, DashboardMetrics } from '@/app/types';
+import {
+  WITHDRAWAL_RATE,
+  MONTHS_PER_YEAR,
+  ANNUAL_TO_MONTHLY_DIVISOR,
+  SCENARIOS,
+  SUCCESS_RATES,
+} from './constants';
 
 // Calculate future value with compound interest
 export const calculateFutureValue = (
@@ -7,8 +14,8 @@ export const calculateFutureValue = (
   annualReturnRate: number,
   years: number
 ): number => {
-  const monthlyRate = annualReturnRate / 12 / 100;
-  const months = years * 12;
+  const monthlyRate = annualReturnRate / MONTHS_PER_YEAR / ANNUAL_TO_MONTHLY_DIVISOR;
+  const months = years * MONTHS_PER_YEAR;
 
   let balance = principal;
 
@@ -27,13 +34,13 @@ export const generateProjections = (
 ): RetirementProjection[] => {
   const projections: RetirementProjection[] = [];
   let balance = userData.currentSavings;
-  const monthlyRate = annualReturnRate / 12 / 100;
-  const monthlyInflation = inflationRate / 12 / 100;
+  const monthlyRate = annualReturnRate / MONTHS_PER_YEAR / ANNUAL_TO_MONTHLY_DIVISOR;
+  const monthlyInflation = inflationRate / MONTHS_PER_YEAR / ANNUAL_TO_MONTHLY_DIVISOR;
   let monthlyWithdrawal = 0;
 
   const yearsToRetirement = userData.retirementAge - userData.currentAge;
   const yearsInRetirement = userData.lifeExpectancy - userData.retirementAge;
-  const totalMonths = (yearsToRetirement + yearsInRetirement) * 12;
+  const totalMonths = (yearsToRetirement + yearsInRetirement) * MONTHS_PER_YEAR;
 
   // Calculate sustainable withdrawal amount (4% rule approximation)
   const projectedBalanceAtRetirement = calculateFutureValue(
@@ -42,10 +49,10 @@ export const generateProjections = (
     annualReturnRate,
     yearsToRetirement
   );
-  monthlyWithdrawal = (projectedBalanceAtRetirement * 0.04) / 12;
+  monthlyWithdrawal = (projectedBalanceAtRetirement * WITHDRAWAL_RATE) / MONTHS_PER_YEAR;
 
   for (let month = 0; month < totalMonths; month++) {
-    const year = Math.floor(month / 12);
+    const year = Math.floor(month / MONTHS_PER_YEAR);
     const age = userData.currentAge + year;
     const isRetired = age >= userData.retirementAge;
 
@@ -55,7 +62,7 @@ export const generateProjections = (
     if (!isRetired) {
       contribution = userData.monthlyContribution;
     } else {
-      withdrawal = monthlyWithdrawal * Math.pow(1 + monthlyInflation, month - yearsToRetirement * 12);
+      withdrawal = monthlyWithdrawal * Math.pow(1 + monthlyInflation, month - yearsToRetirement * MONTHS_PER_YEAR);
     }
 
     // Apply investment return
@@ -63,14 +70,14 @@ export const generateProjections = (
     balance = balance + investmentReturn + contribution - withdrawal;
 
     // Only store yearly data
-    if (month % 12 === 0) {
+    if (month % MONTHS_PER_YEAR === 0) {
       projections.push({
         year: year,
         age: age,
         balance: Math.max(0, balance),
-        contribution: isRetired ? 0 : contribution * 12,
-        investment_return: investmentReturn * 12,
-        withdrawal: isRetired ? withdrawal * 12 : 0,
+        contribution: isRetired ? 0 : contribution * MONTHS_PER_YEAR,
+        investment_return: investmentReturn * MONTHS_PER_YEAR,
+        withdrawal: isRetired ? withdrawal * MONTHS_PER_YEAR : 0,
       });
     }
   }
@@ -80,44 +87,22 @@ export const generateProjections = (
 
 // Create multiple scenarios for different market conditions
 export const generateScenarios = (userData: UserFinancialData): RetirementScenario[] => {
-  const scenarios: RetirementScenario[] = [
-    {
-      id: 'conservative',
-      name: 'Conservative',
-      label: 'Conservative (5% return, 2.5% inflation)',
-      returnRate: 5,
-      inflationRate: 2.5,
-      projections: generateProjections(userData, 5, 2.5),
-      finalBalance: 0,
-      successRate: 0,
-    },
-    {
-      id: 'moderate',
-      name: 'Moderate',
-      label: 'Moderate (7% return, 3% inflation)',
-      returnRate: 7,
-      inflationRate: 3,
-      projections: generateProjections(userData, 7, 3),
-      finalBalance: 0,
-      successRate: 0,
-    },
-    {
-      id: 'aggressive',
-      name: 'Aggressive',
-      label: 'Aggressive (9% return, 3% inflation)',
-      returnRate: 9,
-      inflationRate: 3,
-      projections: generateProjections(userData, 9, 3),
-      finalBalance: 0,
-      successRate: 0,
-    },
-  ];
+  const scenarios: RetirementScenario[] = SCENARIOS.map((scenarioConfig) => ({
+    id: scenarioConfig.id,
+    name: scenarioConfig.name,
+    label: scenarioConfig.label,
+    returnRate: scenarioConfig.returnRate,
+    inflationRate: scenarioConfig.inflationRate,
+    projections: generateProjections(userData, scenarioConfig.returnRate, scenarioConfig.inflationRate),
+    finalBalance: 0,
+    successRate: 0,
+  }));
 
   // Calculate final metrics for each scenario
   scenarios.forEach((scenario) => {
     const lastProjection = scenario.projections[scenario.projections.length - 1];
     scenario.finalBalance = lastProjection?.balance || 0;
-    scenario.successRate = scenario.finalBalance > 0 ? 95 : 45; // Simplified calculation
+    scenario.successRate = scenario.finalBalance > 0 ? SUCCESS_RATES.success : SUCCESS_RATES.failure;
   });
 
   return scenarios;
