@@ -32,7 +32,6 @@ export default function RootLayout({
         {children}
         {/* Client-side Chatbot wrapper */}
         <div suppressHydrationWarning>
-          {/* @ts-expect-error Server Component */}
           {<ClientChatbotWrapper />}
         </div>
       </body>

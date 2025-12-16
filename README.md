@@ -2,61 +2,67 @@
 
 A comprehensive retirement planning application built with **React**, **Next.js**, **ASP.NET Core**, and **C#**. This tool helps users make informed decisions about their retirement by providing personalized forecasts and scenario analysis powered by accurate financial calculations.
 
-## Project Overview
+## Quick Start (5 minutes)
 
-### Frontend Setup
+### Prerequisites
+- Node.js 18+
+- .NET SDK 10+
 
-```bash
-cd /path/to/retirement_planning
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-### Backend Setup
-
+### Terminal 1: Backend API
 ```bash
 cd api/RetirementPlanning.Api
 dotnet build
 dotnet run
 ```
+Backend: http://localhost:5079
 
-The API will start on [http://localhost:5079](http://localhost:5079)
+### Terminal 2: Frontend
+```bash
+npm install      # First time only
+npm run dev
+```
+Frontend: http://localhost:3000
 
-### Both Services Running
-
-You'll have:
-- **Frontend:** http://localhost:3000 (React Dashboard)
-- **Backend:** http://localhost:5079 (ASP.NET Core API)
+Open http://localhost:3000 in your browser and start planning!
 
 ---
 
-### Available Scripts
+## Architecture
 
-```bash
-npm run dev       # Start development server
-npm run build     # Create production build
-npm start         # Run production build
-npm run lint      # Run ESLint
+### Services
+- **Frontend:** React 19 + Next.js 16 (TypeScript) → http://localhost:3000
+- **Backend:** ASP.NET Core 10 + C# → http://localhost:5079
+
+### Data Flow
+```
+User Input → React Form → Validation → API Call
+                                ↓
+                        ASP.NET Core API
+                                ↓
+                      C# Calculation Service
+                                ↓
+                    Return Scenarios + Projections
+                                ↓
+                       Update React State
+                                ↓
+                         Render Dashboard
 ```
 
-## Backend API
+### Fallback Mechanism
+If API is unavailable, the app automatically uses client-side calculations to ensure uninterrupted functionality.
 
-### Running the API
+---
 
-```bash
-cd api/RetirementPlanning.Api
-dotnet run
-```
+## API Endpoints
 
-### API Endpoints
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/api/retirement/health` | Health check |
+| POST | `/api/retirement/scenarios` | Generate 3 scenarios (conservative, moderate, aggressive) |
+| POST | `/api/retirement/projections` | Generate custom projections |
 
-#### 1. Generate Retirement Scenarios
-```
-POST /api/retirement/scenarios
-```
-Generates three retirement scenarios based on user financial data.
+### Example: Generate Scenarios
+**POST** `/api/retirement/scenarios`
 
 **Request:**
 ```json
@@ -90,29 +96,84 @@ Generates three retirement scenarios based on user financial data.
 }
 ```
 
-#### 2. Generate Custom Projections
-```
-POST /api/retirement/projections
-```
-Generates projections with specific return and inflation rates.
+---
 
-#### 3. Health Check
-```
-GET /api/retirement/health
-```
-Verifies API is running and healthy.
+## Development Scripts
 
-For detailed API documentation, see [api/README.md](api/README.md)
+### Frontend
+```bash
+npm run dev       # Start development server (http://localhost:3000)
+npm run build     # Create production build
+npm start         # Run production build
+npm run lint      # Run ESLint
+```
+
+### Backend
+```bash
+dotnet run        # Run with debugging
+dotnet build      # Compile only
+dotnet publish -c Release  # Production build
+```
 
 ---
 
-## Integration
+## Project Structure
 
-The frontend is configured to communicate with the backend API. By default:
-- Frontend calls API at `http://localhost:5079/api`
-- API accepts CORS requests from `http://localhost:3000`
+```
+retirement_planning/
+├── app/                      # React Frontend
+│   ├── components/          # UI Components
+│   ├── hooks/               # Custom hooks (useRetirementPlanning)
+│   ├── lib/                 # Utilities
+│   │   ├── calculations.ts  # Math & scenario generation
+│   │   ├── validation.ts    # Form validation
+│   │   └── constants.ts     # Constants & defaults
+│   └── services/api.ts      # API client
+├── api/                     # ASP.NET Core Backend
+│   └── RetirementPlanning.Api/
+│       ├── Controllers/     # API endpoints
+│       ├── Services/        # Calculation service
+│       ├── Models/          # Data models
+│       ├── Constants/       # Scenarios & constants
+│       └── Program.cs       # Startup configuration
+├── public/                  # Static assets
+└── package.json
+```
 
-For integration details, see [INTEGRATION-GUIDE.md](INTEGRATION-GUIDE.md)
+---
+
+## Configuration
+
+### API URL
+Frontend automatically looks for API at `http://localhost:5079/api`.
+
+To change in production, set in `.env.local`:
+```
+NEXT_PUBLIC_API_URL=https://your-api.com/api
+```
+
+### CORS
+Backend accepts requests from `http://localhost:3000` in development.
+
+---
+
+## Integration Details
+
+- **Type Safety:** Full TypeScript across frontend and backend
+- **Error Handling:** User-friendly error messages with API validation
+- **Fallback:** Client-side calculations if API unavailable
+- **Status Indicator:** Frontend shows API availability status
+- **Fast Response:** API responses in 30-50ms
+
+---
+
+## Testing
+
+1. Fill in user data (use default values for testing)
+2. Click "Generate Forecast"
+3. Open DevTools → Network tab
+4. Verify POST to `/api/retirement/scenarios`
+5. Check response contains scenarios and projections
 
 ---
 
@@ -129,5 +190,12 @@ npm start
 cd api/RetirementPlanning.Api
 dotnet publish -c Release
 ```
+
+---
+
+## Resources
+
+- **API Testing:** See [api/TEST-RESULTS.md](api/TEST-RESULTS.md)
+- **Backend Details:** See [api/README.md](api/README.md)
 
 

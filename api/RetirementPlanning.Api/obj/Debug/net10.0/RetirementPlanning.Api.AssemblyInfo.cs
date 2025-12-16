@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RetirementPlanning.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca34cb4fd177d298e4d2535fd09b7b11ca71b466")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d036dc9f100d9309e7ae4ed79b0dee462dbb8d1e")]
 [assembly: System.Reflection.AssemblyProductAttribute("RetirementPlanning.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RetirementPlanning.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

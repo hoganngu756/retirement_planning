@@ -6,6 +6,7 @@ import {
   SCENARIOS,
   SUCCESS_RATES,
 } from './constants';
+import { apiClient } from '@/app/services/api';
 
 // Calculate future value with compound interest
 export const calculateFutureValue = (
@@ -26,8 +27,8 @@ export const calculateFutureValue = (
   return balance;
 };
 
-// Generate retirement projections
-export const generateProjections = (
+// Generate retirement projections (client-side)
+export const generateProjectionsClientSide = (
   userData: UserFinancialData,
   annualReturnRate: number,
   inflationRate: number
@@ -85,15 +86,15 @@ export const generateProjections = (
   return projections;
 };
 
-// Create multiple scenarios for different market conditions
-export const generateScenarios = (userData: UserFinancialData): RetirementScenario[] => {
+// Create multiple scenarios for different market conditions (client-side)
+export const generateScenariosClientSide = (userData: UserFinancialData): RetirementScenario[] => {
   const scenarios: RetirementScenario[] = SCENARIOS.map((scenarioConfig) => ({
     id: scenarioConfig.id,
     name: scenarioConfig.name,
     label: scenarioConfig.label,
     returnRate: scenarioConfig.returnRate,
     inflationRate: scenarioConfig.inflationRate,
-    projections: generateProjections(userData, scenarioConfig.returnRate, scenarioConfig.inflationRate),
+    projections: generateProjectionsClientSide(userData, scenarioConfig.returnRate, scenarioConfig.inflationRate),
     finalBalance: 0,
     successRate: 0,
   }));
@@ -106,6 +107,18 @@ export const generateScenarios = (userData: UserFinancialData): RetirementScenar
   });
 
   return scenarios;
+};
+
+// Generate scenarios - uses API if available, falls back to client-side
+export const generateScenarios = async (userData: UserFinancialData): Promise<RetirementScenario[]> => {
+  try {
+    // Try to use the API
+    return await apiClient.generateScenarios(userData);
+  } catch (error) {
+    console.warn('API not available, falling back to client-side calculations', error);
+    // Fall back to client-side calculations
+    return generateScenariosClientSide(userData);
+  }
 };
 
 // Calculate key metrics for dashboard
